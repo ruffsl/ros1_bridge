@@ -1,0 +1,9 @@
+################################################################################
+# Repo
+
+.git/
+.github/
+.dockerignore
+.gitignore
+**Dockerfile
+**.Dockerfile
