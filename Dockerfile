@@ -42,7 +42,8 @@ ARG OVERLAY_WS
 ENV OVERLAY_WS $OVERLAY_WS
 WORKDIR $OVERLAY_WS
 COPY --from=cacher /tmp/$OVERLAY_WS ./
-RUN . /ros_entrypoint.sh && \
+RUN . /opt/ros/$ROS1_DISTRO/setup.sh && \
+    . /opt/ros/$ROS2_DISTRO/setup.sh && \
     apt-get update && rosdep install -q -y \
       --from-paths src \
       --ignore-src \
@@ -54,7 +55,8 @@ FROM builder AS tester
 # build overlay source
 COPY --from=cacher $OVERLAY_WS ./
 ARG OVERLAY_MIXINS="release ccache"
-RUN . /ros_entrypoint.sh && \
+RUN . /opt/ros/$ROS1_DISTRO/setup.sh && \
+    . /opt/ros/$ROS2_DISTRO/setup.sh && \
     colcon build \
       --symlink-install \
       --mixin $OVERLAY_MIXINS
