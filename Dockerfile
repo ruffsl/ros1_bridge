@@ -37,6 +37,16 @@ RUN apt-get update && \
     && rosdep update \
     && rm -rf /var/lib/apt/lists/*
 
+# install common dependencies
+RUN apt-get update && apt-get install -y \
+      ros-$ROS1_DISTRO-actionlib-tutorials \
+      ros-$ROS1_DISTRO-control-msgs \
+    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+      ros-$ROS2_DISTRO-action-tutorials-cpp  \
+      ros-$ROS2_DISTRO-control-msgs \
+    && rm -rf /var/lib/apt/lists/*
+
 # install overlay dependencies
 ARG OVERLAY_WS
 ENV OVERLAY_WS $OVERLAY_WS
