@@ -69,7 +69,8 @@ RUN . /opt/ros/$ROS1_DISTRO/setup.sh && \
     . /opt/ros/$ROS2_DISTRO/setup.sh && \
     colcon build \
       --symlink-install \
-      --mixin $OVERLAY_MIXINS
+      --mixin $OVERLAY_MIXINS \
+      --cmake-force-configure
 
 # source overlay from entrypoint
 RUN sed --in-place \
