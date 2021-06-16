@@ -41,6 +41,8 @@ RUN apt-get update && \
 RUN apt-get update && apt-get install -y \
       ros-$ROS1_DISTRO-actionlib-tutorials \
       ros-$ROS1_DISTRO-control-msgs \
+      ros-$ROS1_DISTRO-fetch-auto-dock-msgs \
+      ros-$ROS1_DISTRO-fetch-driver-msgs \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y \
       ros-$ROS2_DISTRO-action-tutorials-cpp  \
