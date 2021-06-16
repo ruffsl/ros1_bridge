@@ -2,10 +2,17 @@
 # ENV ROS2_DISTRO galactic
 
 ARG FROM_IMAGE=ros:galactic-ros1-bridge
+ARG UNDERLAY_WS=/opt/underlay_ws
 ARG OVERLAY_WS=/opt/overlay_ws
 
 # multi-stage for caching
 FROM $FROM_IMAGE AS cacher
+
+# clone underlay source
+ARG UNDERLAY_WS
+WORKDIR $UNDERLAY_WS/src
+COPY ./underlay.repos ../
+RUN vcs import ./ < ../underlay.repos
 
 # copy overlay source
 ARG OVERLAY_WS
@@ -18,7 +25,9 @@ RUN find . -name "src" -type d \
       -mindepth 1 -maxdepth 2 -printf '%P\n' \
       | xargs -I % mkdir -p /tmp/opt/% && \
     find . -name "package.xml" \
-      | xargs cp --parents -t /tmp/opt
+      | xargs cp --parents -t /tmp/opt && \
+    find . -name "COLCON_IGNORE" \
+      | xargs cp --parents -t /tmp/opt || true
 
 # multi-stage for building
 FROM $FROM_IMAGE AS builder
@@ -49,13 +58,32 @@ RUN apt-get update && apt-get install -y \
       ros-$ROS2_DISTRO-control-msgs \
     && rm -rf /var/lib/apt/lists/*
 
+# install underlay dependencies
+ARG UNDERLAY_WS
+ENV UNDERLAY_WS $UNDERLAY_WS
+WORKDIR $UNDERLAY_WS
+COPY --from=cacher /tmp/$UNDERLAY_WS ./
+RUN . /opt/ros/$ROS2_DISTRO/setup.sh && \
+    apt-get update && rosdep install -q -y \
+      --from-paths src \
+      --ignore-src \
+    && rm -rf /var/lib/apt/lists/*
+
+# build underlay source
+COPY --from=cacher $UNDERLAY_WS ./
+ARG UNDERLAY_MIXINS="release ccache"
+RUN . /opt/ros/$ROS2_DISTRO/setup.sh && \
+    colcon build \
+      --symlink-install \
+      --mixin $UNDERLAY_MIXINS
+
 # install overlay dependencies
 ARG OVERLAY_WS
 ENV OVERLAY_WS $OVERLAY_WS
 WORKDIR $OVERLAY_WS
 COPY --from=cacher /tmp/$OVERLAY_WS ./
 RUN . /opt/ros/$ROS1_DISTRO/setup.sh && \
-    . /opt/ros/$ROS2_DISTRO/setup.sh && \
+    . $UNDERLAY_WS/install/setup.sh && \
     apt-get update && rosdep install -q -y \
       --from-paths src \
       --ignore-src \
@@ -68,7 +96,7 @@ FROM builder AS tester
 COPY --from=cacher $OVERLAY_WS ./
 ARG OVERLAY_MIXINS="release ccache"
 RUN . /opt/ros/$ROS1_DISTRO/setup.sh && \
-    . /opt/ros/$ROS2_DISTRO/setup.sh && \
+    . $UNDERLAY_WS/install/setup.sh && \
     colcon build \
       --symlink-install \
       --mixin $OVERLAY_MIXINS \
@@ -76,7 +104,7 @@ RUN . /opt/ros/$ROS1_DISTRO/setup.sh && \
 
 # source overlay from entrypoint
 RUN sed --in-place \
-      's|^source .*|source "$OVERLAY_WS/install/setup.bash"|' \
+      's|^source "/opt/ros/$ROS2_DISTRO .*|source "$OVERLAY_WS/install/setup.bash"|' \
       /ros_entrypoint.sh
 
 # test overlay build

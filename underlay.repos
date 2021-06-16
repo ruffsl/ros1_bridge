@@ -1,0 +1,10 @@
+repositories:
+  fetchrobotics/power_msgs:
+    type: git
+    url: https://github.com/ruffsl/power_msgs.git
+    version: ros2
+  fetchrobotics/fetch_msgs:
+    type: git
+    url: https://github.com/ruffsl/fetch_msgs.git
+    version: ros2
+# v1
