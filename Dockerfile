@@ -1,7 +1,4 @@
-# ENV ROS1_DISTRO noetic
-# ENV ROS2_DISTRO galactic
-
-ARG FROM_IMAGE=ros:galactic-ros1-bridge
+ARG FROM_IMAGE=osrf/ros2:nightly
 ARG UNDERLAY_WS=/opt/underlay_ws
 ARG OVERLAY_WS=/opt/overlay_ws
 
@@ -46,17 +43,29 @@ RUN apt-get update && \
     && rosdep update \
     && rm -rf /var/lib/apt/lists/*
 
+# setup sources.list
+RUN echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros1-latest.list
+
+# setup keys
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+ENV ROS1_DISTRO noetic
+ENV ROS2_DISTRO rolling
+
 # install common dependencies
 RUN apt-get update && apt-get install -y \
       ros-$ROS1_DISTRO-actionlib-tutorials \
       ros-$ROS1_DISTRO-control-msgs \
       ros-$ROS1_DISTRO-fetch-auto-dock-msgs \
       ros-$ROS1_DISTRO-fetch-driver-msgs \
+      ros-$ROS1_DISTRO-ros-comm \
+      ros-$ROS1_DISTRO-roscpp-tutorials \
+      ros-$ROS1_DISTRO-rospy-tutorials \
     && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && apt-get install -y \
-      ros-$ROS2_DISTRO-action-tutorials-cpp  \
-      ros-$ROS2_DISTRO-control-msgs \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && apt-get install -y \
+#       ros-$ROS2_DISTRO-action-tutorials-cpp  \
+#       ros-$ROS2_DISTRO-control-msgs \
+#     && rm -rf /var/lib/apt/lists/*
 
 # install underlay dependencies
 ARG UNDERLAY_WS
