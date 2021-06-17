@@ -1,0 +1,14 @@
+repositories:
+  fetchrobotics/power_msgs:
+    type: git
+    url: https://github.com/ruffsl/power_msgs.git
+    version: ros2
+  fetchrobotics/fetch_msgs:
+    type: git
+    url: https://github.com/ruffsl/fetch_msgs.git
+    version: ros2
+  ros2/demos:
+    type: git
+    url: https://github.com/ruffsl/demos.git
+    version: ruffsl/galactic/bridge_action_tutorials_interfaces
+# v1
